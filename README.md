@@ -1,1 +1,3 @@
-# mllm-ilr
+# Indexing Multimodal Language Models for Large-scale Image Retrieval
+
+code coming soon...
