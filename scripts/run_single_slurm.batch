@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --gres=gpu:1
+#SBATCH --mem=64G
+#SBATCH --cpus-per-task=16
+#SBATCH --output=logs/%j.out
+
+# -----------------------------------------------------------------------------
+# Environment setup
+# Assumes all required dependencies are already installed in a Conda
+# environment called "mllms".
+# -----------------------------------------------------------------------------
+
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate mllms
+
+# Optional: print environment information for debugging
+echo "Python: $(which python)"
+echo "Conda environment: $CONDA_DEFAULT_ENV"
+echo "Hostname: $(hostname)"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+python rerank.py \
+        --query_start 0 \
+        --query_end 1232 \
+        --save_dir /path/to/save \
+        --image_dir /path/to/ilias \
+        --shards_dir /path/to/ilias \
+        --config configs/ilias_pe_no_comp.yaml 
