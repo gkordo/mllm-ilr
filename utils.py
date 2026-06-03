@@ -5,50 +5,13 @@ import argparse
 from types import SimpleNamespace
 from transformers import AutoProcessor, BatchFeature
 
-binary_prompt = """
-You are given two images: a query and a candidate. Determine if they show the same unique instance, not just similar objects. Use fine-grained visual details (e.g., marks, textures, logos) and identity/location-specific cues. The same instance may appear at a different scale, under different brightness, in a different orientation, or partially occluded. Ignore general similarity (e.g., same type or model).
 
-Output only a single number:
-0 = different instances
-1 = same unique instance
-
-No extra text. Just the number.
-"""
-
-class_prompt = """
-You are given two images: a query and a candidate. Determine whether the candidate image contains an object that belongs to the same semantic class as the object in the query image.
-* The object does not need to be the same instance, only the same class type.
-* It may appear at a different scale.
-* It may be partially visible or occluded.
-* Other objects may also appear in the candidate.
+generic_prompt = """
+You are given two images: a query and a candidate. Determine whether the candidate is similar to the query image.
 
 Output strictly a single digit:
-0 = an instance of the same class does not appear in the candidate
-1 = an instance of the same class appears in the candidate
-
-Do not output anything else.
-"""
-
-class_simple_prompt = """
-You are given two images: a query and a candidate. Determine whether the candidate belongs to the same semantic class as the query image.
-
-Output strictly a single digit:
-0 = the two images are of a different class
-1 = the two images are of the same class
-
-Do not output anything else.
-"""
-
-object_details_prompt = """
-You are given two images: a query and a candidate. Determine whether the exact same object instance from the query image is present in the candidate image.
-* The instance must be the same, not just a similar object.
-* The instance may appear at a different scale
-* It may be partially visible or occluded.
-* Other objects may also appear in the candidate.
-
-Output strictly a single digit:
-0 = the object instance does not appear
-1 = the object instance appears in the candidate
+0 = the object instance does not appear.
+1 = the object instance appears in the candidate.
 
 Do not output anything else.
 """
@@ -65,18 +28,6 @@ Output strictly a single digit:
 Do not output anything else.
 """
 
-inat_prompt = """
-You are given two images: a query and a candidate. Determine whether the exact same fine-grained biological species (e.g., a specific type of animal, bird, insect, or plant) from the query image is present in the candidate image.
-* Pay close attention to fine-grained differences. Do not match two different species just because they are visually similar (e.g., a "Monarch Butterfly" and a "Viceroy Butterfly" are a 0).
-* The same species may be shown from a different angle, at a different scale, or be partially occluded.
-
-Output strictly a single digit: 
-0 = the same species does not appear in the candidate 
-1 = the same species appears in the candidate
-
-Do not output anything else.
-"""
-
 landmark_prompt = """
 You are given two images: a query and a candidate. Determine whether the exact same landmark, building, or architectural detail from the query image is present in the candidate image.
 * The instance must be the same, not just a similar-looking building or structure.
@@ -89,65 +40,6 @@ Output strictly a single digit:
 
 Do not output anything else.
 """
-
-met_prompt = """
-You are given two images: a query and a candidate. Determine whether the exact same artwork from the query image is present in the candidate image.
-* The instance must be the same, not just a similar-looking artwork or one of the same subject.
-* The instance may appear at a different scale, from a different viewpoint, partially occluded, or among other objects.
-
-Output strictly a single digit:
-0 = the instance does not appear
-1 = the instance appears in the candidate
-
-Do not output anything else.
-"""
-
-object_yesno_prompt = """
-You are given two images: a query and a candidate. Determine whether the exact same object instance from the query image is present in the candidate image.
-* The instance must be the same, not just a similar object.
-* The instance may appear at a different scale, partially occluded, or among other objects.
-Output strictly a yes or no and nothing else:
-Yes = the object instance from the query appears in the candidate
-No = the object instance from the query does NOT appear in the candidate
-Do not output anything else.
-"""
-
-object_simple_prompt = """
-You are given two images: a query and a candidate. Determine if the exact same object instance from the query image is present in the candidate image (not just a similar object).
-
-Output strictly a single digit:
-0 = the object instance does not appear
-1 = the object instance appears in the candidate
-
-Do not output anything else.
-"""
-
-ternary_prompt = """
-You are given two images: a query and a candidate. Determine whether they depict the same unique instance (e.g., the same exact object or individual), not just similar ones.
-
-Focus on fine-grained visual cues (e.g., scratches, wear, textures, logos, location context). Ignore general similarity such as same model, brand, or object type. The same instance may appear at a different scale, under different brightness, in a different orientation, or partially occluded.
-
-Output only a single number, with no additional text:
-
-0 = Clearly different instances.
-1 = Possibly the same unique instance, but uncertain.
-2 = Definitely the same unique instance.
-"""
-
-decimal_prompt = """
-You are given two images: a query and a candidate. Determine whether they depict the same unique instance (e.g., the same exact object or individual), not just similar ones.
-
-Focus on fine-grained visual cues (e.g., scratches, wear, textures, logos, location context). Ignore general similarity such as same model, brand, or object type. The same instance may appear at a different scale, under different brightness, in a different orientation, or partially occluded.
-
-Output only a single number between 1 and 10, with no additional text:
-
-1-3: Clearly different instances.
-4-6: Same object category or class but clearly different instances.
-7-8: Likely the same instance but with some uncertainty.
-9: Very likely the same instance.
-10: Almost certainly the same unique instance.
-"""
-
 
 def bool_flag(s):
     FALSY_STRINGS = {"off", "false", "0"}
@@ -198,17 +90,9 @@ class Prompter:
     def __init__(self, prompt_type="appear_details", min_tokens=256, max_tokens=1280):
 
         self.prompt = {
-            "binary": binary_prompt,
-            "ternary": ternary_prompt,
-            "decimal": decimal_prompt,
+            "generic": generic_prompt,
             "object": object_prompt,
-            "object_yesno": object_yesno_prompt,
-            "object_details": object_details_prompt,
-            "object_simple": object_simple_prompt,
-            "class": class_prompt,
-            "class_simple": class_simple_prompt,
             "landmark": landmark_prompt,
-            "met": met_prompt,
         }[prompt_type]
 
         self.processor = AutoProcessor.from_pretrained(
@@ -226,8 +110,6 @@ class Prompter:
                 "content": [
                     {"type": "image"},
                     {"type": "image"},
-                    # {"type": "image", "image": query_file_path, "resized_height": query_resized_height, "resized_width": query_resized_width},
-                    # {"type": "image", "image": shortlisted_file_path, "resized_height": shortlisted_resized_height, "resized_width": shortlisted_resized_width},
                     {"type": "text", "text": self.prompt},
                 ],
             }
