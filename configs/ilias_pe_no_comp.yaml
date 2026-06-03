@@ -1,0 +1,45 @@
+global_similarities:
+  file_path: "/path/to/vit_pe_core_large_patch14_336.fb/similarities/similarities_full_i2i_adopt.json"
+  topN: 1000
+
+preprocessing:
+  resolution: 756
+  min_tokens: 0
+  max_tokens: 1280
+  prompt_type: "object"     # generic | object | landmark
+
+postprocessing:
+  use_confidence: true
+
+product_quantization:
+  apply: false
+  index_file_path: "/path/to/pq_index_M_448.faiss"
+
+sampling:
+  apply: false
+  type: "2D"
+  replacement_method: "replicate"  # replicate | skip | zero
+
+pooling:
+  apply: false
+  type: "2D"
+  replacement_method: "replicate"  # replicate | skip | zero
+
+grouping:
+  apply: false
+  group_size: 4
+  reduce_method: "mean"            # mean | nearest | median
+  replacement_method: "replicate"  # replicate | skip | zero
+
+clustering:
+  apply: false
+  n_clusters: 70
+  reduce_method: "mean"            # mean | nearest | median
+  replacement_method: "replicate"  # replicate | skip | zero
+
+asymmetry:
+  apply: false
+
+save_tokens:
+  apply: false
+  save_dir: "/path/to/save/tokens"

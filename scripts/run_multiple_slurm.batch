@@ -1,0 +1,59 @@
+#!/bin/bash
+#SBATCH --gres=gpu:1
+#SBATCH --mem=64G
+#SBATCH --cpus-per-task=16
+#SBATCH --output=logs/%j.out
+
+# -----------------------------------------------------------------------------
+# Environment setup
+# Assumes all required dependencies are already installed in a Conda
+# environment called "mllms".
+# -----------------------------------------------------------------------------
+
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate mllms
+
+# Optional: print environment information for debugging
+echo "Python: $(which python)"
+echo "Conda environment: $CONDA_DEFAULT_ENV"
+echo "Hostname: $(hostname)"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+# -----------------------------------------------------------------------------
+# Arguments
+# -----------------------------------------------------------------------------
+
+DATASET=$1
+EXP=$2
+QUERY_START=$3
+QUERY_END=$4
+RESULTS_FOLDER=$5
+
+if [ "$DATASET" == "ilias" ]; then
+    IMAGE_DIR="/path/to/ilias/ilias_core"
+    SHARDS_DIR="/path/to/ilias/shards_flickr_recompress/"
+elif [ "$DATASET" == "instre" ]; then
+    IMAGE_DIR="/path/to/INSTRE/jpg/"
+    SHARDS_DIR=None
+else
+    echo "Unknown dataset: $DATASET"
+    exit 1
+fi
+
+
+OUTPUT_FOLDER="$RESULTS_FOLDER/$EXP"
+OUTPUT_FILE="$OUTPUT_FOLDER/results_${QUERY_START}_${QUERY_END}.json"
+mkdir -p $OUTPUT_FOLDER
+
+if [ -f "$OUTPUT_FILE" ]; then
+    echo "Skipping: $OUTPUT_FILE already exists."
+else
+    echo "Running rerank.py for queries ${QUERY_START}-${QUERY_END} of ${DATASET}..."
+    srun -l python rerank.py \
+        --query_start $QUERY_START \
+        --query_end $QUERY_END \
+        --save_dir $OUTPUT_FOLDER \
+        --image_dir $IMAGE_DIR \
+        --shards_dir $SHARDS_DIR \
+        --config configs/$EXP.yaml 
+fi
