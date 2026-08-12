@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Bahey Tharwat<sup>1,*</sup>, Giorgos Kordopatis-Zilos<sup>2,*</sup>, Pavel Suma<sup>2</sup>, Ian Reid<sup>1</sup>, Giorgos Tolias<sup>2</sup>**
+**Bahey Tharwat<sup>1</sup>, Giorgos Kordopatis-Zilos<sup>2</sup>, Pavel Suma<sup>2</sup>, Ian Reid<sup>1</sup>, Giorgos Tolias<sup>2</sup>**
 
 <sup>1</sup> Mohamed bin Zayed University of Artificial Intelligence, Abu Dhabi, UAE  
 <sup>2</sup> VRG, FEE, Czech Technical University in Prague, Prague, Czech Republic
@@ -10,7 +10,7 @@
 **CVPR 2026 Findings**
 
 <a href="https://arxiv.org/abs/2604.13268">
-  <img src="misc/arxiv.png" alt="arXiv" height="40">
+  <img src="misc/arxiv.png" alt="arXiv" height="30">
 </a>
 
 </div>
@@ -199,11 +199,10 @@ Replace `/path/to/ilias/images` with the path to your local ILIAS image director
 If you use this repository in your research, please cite:
 
 ```bibtex
-@inproceedings{tharwat2026indexing,
+@inproceedings{tharwat2026mllm,
   title={Indexing Multimodal Language Models for Large-scale Image Retrieval},
   author={Tharwat, Bahey and Kordopatis-Zilos, Giorgos and Suma, Pavel and Reid, Ian and Tolias, Giorgos},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={6737--6747},
+  booktitle={Conference on Computer Vision and Pattern Recognition (CVPR) Findings},
   year={2026}
 }
 ```
